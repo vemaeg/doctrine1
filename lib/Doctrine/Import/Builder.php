@@ -400,7 +400,7 @@ class Doctrine_Import_Builder extends Doctrine_Builder
      * @param  array $relations
      * @return string
      */
-    public function buildSetUp(array $definition)
+    public function buildSetUp(array &$definition)
     {
         $ret = array();
         $i = 0;
@@ -482,7 +482,7 @@ class Doctrine_Import_Builder extends Doctrine_Builder
         }
 
         if (isset($definition['actAs']) && is_array($definition['actAs']) && !empty($definition['actAs'])) {
-            $ret[$i] = $this->buildActAs($definition['actAs']);
+            $ret[$i] = $this->buildActAs($definition['actAs'], $definition);
             $i++;
         }
 
@@ -864,7 +864,7 @@ class Doctrine_Import_Builder extends Doctrine_Builder
      * @param string $option
      * @return string assignation code
      */
-    private function emitAssign($level, $name, $option)
+    private function emitAssign($level, $name, $option, &$classname)
     {
         // find class matching $name
         $classname = $name;
@@ -904,10 +904,10 @@ class Doctrine_Import_Builder extends Doctrine_Builder
      * buildActAs: builds a complete actAs code. It supports hierarchy of plugins
      * @param array $actAs array of plugin definitions and options
      */
-    public function buildActAs($actAs)
+    public function buildActAs($actAs, &$definition)
     {
         $emittedActAs = array();
-        $build = $this->innerBuildActAs($actAs, 0, null, $emittedActAs);
+        $build = $this->innerBuildActAs($actAs, 0, null, $emittedActAs, $definition);
         foreach($emittedActAs as $str) {
             $build .= $str;
         }
@@ -923,7 +923,7 @@ class Doctrine_Import_Builder extends Doctrine_Builder
      * @param array  $emittedActAs contains on output an array of actAs command to be appended to output
      * @return string actAs full definition
      */
-    private function innerBuildActAs($actAs, $level = 0, $parent = null, array &$emittedActAs)
+    private function innerBuildActAs($actAs, $level = 0, $parent = null, array &$emittedActAs, array &$definition)
     {
         // rewrite special case of actAs: [Behavior] which gave [0] => Behavior
         if (is_array($actAs) && isset($actAs[0]) && !is_array($actAs[0])) {
@@ -944,7 +944,7 @@ class Doctrine_Import_Builder extends Doctrine_Builder
             foreach($actAs as $template => $options) {
                 if ($template == 'actAs') {
                     // found another actAs
-                    $build .= $this->innerBuildActAs($options, $level + 1, $parent, $emittedActAs);
+                    $build .= $this->innerBuildActAs($options, $level + 1, $parent, $emittedActAs, $definition);
                 } else if (is_array($options)) {
                     // remove actAs from options
                     $realOptions = array();
@@ -958,7 +958,8 @@ class Doctrine_Import_Builder extends Doctrine_Builder
                     }
 
                     $optionPHP = $this->varExport($realOptions);
-                    $build .= $this->emitAssign($level, $template, $optionPHP);
+                    $build .= $this->emitAssign($level, $template, $optionPHP, $className);
+                    $this->addActAsColumnsToDefinition($className, $realOptions, $definition);
                     if ($level == 0) {
                         $emittedActAs[] = $this->emitActAs($level, $template);
                     } else {
@@ -966,9 +967,10 @@ class Doctrine_Import_Builder extends Doctrine_Builder
                     }
                     // descend for the remainings actAs
                     $parent = $template;
-                    $build .= $this->innerBuildActAs($leftActAs, $level, $template, $emittedActAs);
+                    $build .= $this->innerBuildActAs($leftActAs, $level, $template, $emittedActAs, $definition);
                 } else {
-                    $build .= $this->emitAssign($level, $template, null);
+                    $build .= $this->emitAssign($level, $template, null, $className);
+                    $this->addActAsColumnsToDefinition($className, array($options), $definition);
                     if ($level == 0) {
                         $emittedActAs[] = $this->emitActAs($level, $template);
                     } else {
@@ -978,7 +980,8 @@ class Doctrine_Import_Builder extends Doctrine_Builder
                 }
             }
         } else {
-            $build .= $this->emitAssign($level, $actAs, null);
+            $build .= $this->emitAssign($level, $actAs, null, $className);
+            $this->addActAsColumnsToDefinition($className, array(), $definition);
             if ($level == 0) {
                 $emittedActAs[] = $this->emitActAs($level, $actAs);
             } else {
@@ -987,6 +990,51 @@ class Doctrine_Import_Builder extends Doctrine_Builder
         }
 
         return $build;
+    }
+
+    /**
+     * Adds the columns of the used actAs behaviors to the comment block.
+     *
+     * @param string $className
+     * @param array $options
+     * @param array $definition
+     *
+     * @throws Doctrine_Import_Builder_Exception
+     */
+    private function addActAsColumnsToDefinition($className, $instanceOptions, &$definition)
+    {
+        if ($className && class_exists($className)) {
+            $actAsInstance = new $className($instanceOptions);
+            $options = $actAsInstance->getOptions();
+
+            if (count($options) == 0) {
+                return;
+            }
+
+            // Some behaviors do not contain an array of columns, e.g. SoftDelete.
+            if (!is_array(reset($options))) {
+                $options = [$options];
+            }
+
+            foreach ($options as $name => $column) {
+                if (!array_key_exists('name', $column) || !array_key_exists('type', $column)) {
+                    // 'name' or 'type' not found. Unfortunately there is no logger. What is the best way to abort here?
+                    continue;
+                }
+
+                if (array_key_exists('disabled', $column) && $column['disabled']) {
+                    // Column has been disabled.
+                    continue;
+                }
+
+                // Add field, if it does not exist already.
+                if (!array_key_exists($name, $definition['columns']) && !array_key_exists($column['name'], $definition['columns'])) {
+                    $definition['columns'][$name] = $column;
+                }
+            }
+        } else {
+            throw new Doctrine_Import_Builder_Exception('Missing class for actAs ' . $className . '.');
+        }
     }
 
     /**
