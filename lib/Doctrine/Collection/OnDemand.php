@@ -37,6 +37,7 @@ class Doctrine_Collection_OnDemand implements Iterator
     protected $_current;
     protected $_tableAliasMap;
     protected $_hydrator;
+    protected $_lowMemory;
     protected $index;
 
     public function __construct($stmt, $hydrator, $tableAliasMap)
@@ -45,9 +46,20 @@ class Doctrine_Collection_OnDemand implements Iterator
         $this->_hydrator = $hydrator;
         $this->_tableAliasMap = $tableAliasMap;
         $this->_current = null;
+        $this->_lowMemory = false;
         $this->index = 0;
 
         $this->_hydrateCurrent();
+    }
+
+    public function setLowMemory($lowMemory)
+    {
+        $this->_lowMemory = $lowMemory;
+    }
+
+    public function close()
+    {
+        $this->_stmt->closeCursor();
     }
 
     private function _hydrateCurrent()
@@ -85,6 +97,40 @@ class Doctrine_Collection_OnDemand implements Iterator
 
     public function next()
     {
+        if ($this->_lowMemory && !is_null($this->_current)) {
+            $this->_hydrator->flush();
+
+            $models = [$this->_current];
+            $cleanedModels = [];
+
+            while (count($models)) {
+                /** @var Doctrine_Record $model */
+                $model = array_shift($models);
+
+                // Haben wir dieses Model schon aufgeräumt? Dann passt es ja,
+                // es per array_shift aus der Collection entfernt zu haben und weiter
+                // nichts zu tun.
+                if (in_array($model, $cleanedModels)) {
+                    continue;
+                }
+
+                if ($model instanceof Doctrine_Collection) {
+                    // Pushe alle Elemente der Collection in die aufzuräumenden Models.
+                    $models = array_merge($models, $model->getData());
+                } else {
+                    // Pushe alle referenzierten Modelle in die aufzuräumenden Models.
+                    $models = array_merge($models, $model->getReferences());
+
+                    /** @var Doctrine_Table $table */
+                    $table = $model->getTable();
+                    $table->removeRecord($model);
+                    $table->getRepository()->evict($model->getOID());
+
+                    array_push($cleanedModels, $model);
+                }
+            }
+        }
+
         $this->_current = null;
         $this->index++;
         $this->_hydrateCurrent();
