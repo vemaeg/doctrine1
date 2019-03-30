@@ -2770,6 +2770,9 @@ class Doctrine_Table extends Doctrine_Configurable implements Countable, Seriali
         }
         $fields = array_merge($fields, $ucfirstFields);
 
+        // Remove duplicate entries.
+        $fields = array_unique($fields);
+
         // Sort field names by length - smallest first
         // and then reverse so that largest is first
         usort($fields, array($this, 'isGreaterThan'));
