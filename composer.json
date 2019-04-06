@@ -6,14 +6,22 @@
     "homepage": "http://www.doctrine-project.org",
     "license": "LGPL-2.1-or-later",
     "authors": [
-        {"name": "Konsta Vesterinen", "email": "kvesteri@cc.hut.fi"},
-        {"name": "Jonathan Wage", "email": "jonwage@gmail.com"}
+        {
+            "name": "Konsta Vesterinen",
+            "email": "kvesteri@cc.hut.fi"
+        },
+        {
+            "name": "Jonathan Wage",
+            "email": "jonwage@gmail.com"
+        }
     ],
     "require": {
         "php": ">=5.2.3",
         "ext-pdo": "*"
     },
     "autoload": {
-        "psr-0": { "Doctrine_": "lib/" }
+        "psr-0": {
+            "Doctrine_": "lib/"
+        }
     }
 }
