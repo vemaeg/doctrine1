@@ -107,9 +107,15 @@ class Doctrine_Collection_OnDemand implements Iterator
                 /** @var Doctrine_Record $model */
                 $model = array_shift($models);
 
-                // Haben wir dieses Model schon aufgeräumt? Dann passt es ja,
-                // es per array_shift aus der Collection entfernt zu haben und weiter
-                // nichts zu tun.
+                // Empty value or Doctrine_Null: Nothing to do...
+                // This could be the case, if a foreign key relation does not
+                // contain a value and Doctrine has put a Doctrine_Null as a
+                // placeholder and we merged it to the models list below.
+                if (!$model || $model instanceof Doctrine_Null) {
+                    continue;
+                }
+
+                // Has this model already be removed in this cycle? Skip it!
                 if (in_array($model, $cleanedModels)) {
                     continue;
                 }
