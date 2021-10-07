@@ -923,7 +923,7 @@ class Doctrine_Import_Builder extends Doctrine_Builder
      * @param array  $emittedActAs contains on output an array of actAs command to be appended to output
      * @return string actAs full definition
      */
-    private function innerBuildActAs($actAs, $level = 0, $parent = null, array &$emittedActAs, array &$definition)
+    private function innerBuildActAs($actAs, $level = 0, $parent = null, array &$emittedActAs = array(), array &$definition = array())
     {
         // rewrite special case of actAs: [Behavior] which gave [0] => Behavior
         if (is_array($actAs) && isset($actAs[0]) && !is_array($actAs[0])) {
@@ -1017,7 +1017,7 @@ class Doctrine_Import_Builder extends Doctrine_Builder
             }
 
             foreach ($options as $name => $column) {
-                if (!array_key_exists('name', $column) || !array_key_exists('type', $column)) {
+                if (!$column || !array_key_exists('name', $column) || !array_key_exists('type', $column)) {
                     // 'name' or 'type' not found. Unfortunately there is no logger. What is the best way to abort here?
                     continue;
                 }
