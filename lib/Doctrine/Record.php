@@ -185,7 +185,7 @@ abstract class Doctrine_Record extends Doctrine_Record_Abstract implements Count
      *
      * @var array
      */
-    protected $_invokedSaveHooks = false;
+    protected $_invokedSaveHooks = array();
 
     /**
      * @var integer $index                  this index is used for creating object identifiers
