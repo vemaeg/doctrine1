@@ -1626,12 +1626,9 @@ abstract class Doctrine_Connection extends Doctrine_Configurable implements Coun
      */
     public function unserialize($serialized)
     {
-        $array = unserialize($serialized);
-
-        $this->__unserialize($array);
+        $this->__unserialize(unserialize($serialized));
     }
 
-    #[ReturnTypeWillChange]
     public function __serialize()
     {
         $vars = get_object_vars($this);
@@ -1640,7 +1637,6 @@ abstract class Doctrine_Connection extends Doctrine_Configurable implements Coun
         return $vars;
     }
 
-    #[ReturnTypeWillChange]
     public function __unserialize(array $data)
     {
         foreach ($data as $name => $values) {
