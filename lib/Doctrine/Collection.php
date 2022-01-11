@@ -145,9 +145,24 @@ class Doctrine_Collection extends Doctrine_Access implements Countable, Iterator
     /**
      * This method is automatically called when this Doctrine_Collection is serialized
      *
-     * @return array
+     * @return string
      */
     public function serialize()
+    {
+        return serialize($this->__serialize());
+    }
+
+    /**
+     * This method is automatically called everytime a Doctrine_Collection object is unserialized
+     *
+     * @return void
+     */
+    public function unserialize($serialized)
+    {
+        $this->__unserialize(unserialize($serialized));
+    }
+
+    public function __serialize()
     {
         $vars = get_object_vars($this);
 
@@ -160,20 +175,13 @@ class Doctrine_Collection extends Doctrine_Access implements Countable, Iterator
 
         $vars['_table'] = $vars['_table']->getComponentName();
 
-        return serialize($vars);
+        return $vars;
     }
 
-    /**
-     * This method is automatically called everytime a Doctrine_Collection object is unserialized
-     *
-     * @return void
-     */
-    public function unserialize($serialized)
+    public function __unserialize(array $array)
     {
-        $manager    = Doctrine_Manager::getInstance();
+        $manager       = Doctrine_Manager::getInstance();
         $connection    = $manager->getCurrentConnection();
-
-        $array = unserialize($serialized);
 
         foreach ($array as $name => $values) {
             $this->$name = $values;
@@ -432,6 +440,7 @@ class Doctrine_Collection extends Doctrine_Access implements Countable, Iterator
      *
      * @return integer
      */
+    #[ReturnTypeWillChange]
     public function count()
     {
         return count($this->data);
@@ -1036,6 +1045,7 @@ class Doctrine_Collection extends Doctrine_Access implements Countable, Iterator
      *
      * @return Iterator
      */
+    #[ReturnTypeWillChange]
     public function getIterator()
     {
         $data = $this->data;
