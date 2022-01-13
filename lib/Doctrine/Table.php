@@ -1133,7 +1133,7 @@ class Doctrine_Table extends Doctrine_Configurable implements Countable, Seriali
         }
 
         if ( ! is_array($orderBy)) {
-            $e1 = explode(',', $orderBy);
+            $e1 = explode(',', $orderBy === null ? '' : $orderBy);
         } else {
             $e1 = $orderBy;
         }
