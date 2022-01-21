@@ -1133,7 +1133,7 @@ class Doctrine_Table extends Doctrine_Configurable implements Countable, Seriali
         }
 
         if ( ! is_array($orderBy)) {
-            $e1 = explode(',', $orderBy);
+            $e1 = explode(',', $orderBy === null ? '' : $orderBy);
         } else {
             $e1 = $orderBy;
         }
@@ -1977,6 +1977,7 @@ class Doctrine_Table extends Doctrine_Configurable implements Countable, Seriali
      *
      * @return integer number of records in the table
      */
+    #[ReturnTypeWillChange]
     public function count()
     {
         return $this->createQuery()->count();
@@ -2979,10 +2980,20 @@ class Doctrine_Table extends Doctrine_Configurable implements Countable, Seriali
 
     public function serialize()
     {
+        return serialize($this->__serialize());
+    }
+
+    public function unserialize($data)
+    {
+        $this->__unserialize(unserialize($data));
+    }
+
+    public function __serialize()
+    {
         $options = $this->_options;
         unset($options['declaringClass']);
 
-        return serialize(array(
+        return array(
             $this->_identifier,
             $this->_identifierType,
             $this->_columns,
@@ -2994,13 +3005,11 @@ class Doctrine_Table extends Doctrine_Configurable implements Countable, Seriali
             $options,
             $this->_invokedMethods,
             $this->_useIdentityMap,
-        ));
+        );
     }
 
-    public function unserialize($data)
+    public function __unserialize(array $all)
     {
-        $all = unserialize($data);
-
         $this->_identifier = $all[0];
         $this->_identifierType = $all[1];
         $this->_columns = $all[2];
