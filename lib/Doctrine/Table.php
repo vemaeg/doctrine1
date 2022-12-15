@@ -2774,13 +2774,16 @@ class Doctrine_Table extends Doctrine_Configurable implements Countable, Seriali
         }
         $fields = array_merge($fields, $ucfirstFields);
 
+        // Remove duplicate entries.
+        $fields = array_unique($fields);
+
         // Sort field names by length - smallest first
         // and then reverse so that largest is first
         usort($fields, array($this, 'isGreaterThan'));
         $fields = array_reverse(array_unique($fields));
 
         // Identify fields and operators
-        preg_match_all('/(' . implode('|', $fields) . ')(Or|And)?/', $fieldName, $matches);
+        preg_match_all('/((?i)' . implode('|', $fields) . ')(Or|And)?/', $fieldName, $matches);
         $fieldsFound = $matches[1];
         $operatorFound = $matches[2];
         foreach ($operatorFound as &$v) {
@@ -2789,7 +2792,7 @@ class Doctrine_Table extends Doctrine_Configurable implements Countable, Seriali
 
         // Check if $fieldName has unidentified parts left
         if (strlen(implode('', $fieldsFound) . implode('', $operatorFound)) !== strlen($fieldName)) {
-            $expression = preg_replace('/(' . implode('|', $fields) . ')(Or|And)?/', '($1)$2', $fieldName);
+            $expression = preg_replace('/((?i)' . implode('|', $fields) . ')(Or|And)?/', '($1)$2', $fieldName);
             throw new Doctrine_Table_Exception('Invalid expression found: ' . $expression);
         }
 
