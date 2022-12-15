@@ -1447,7 +1447,13 @@ abstract class Doctrine_Query_Abstract
     {
         // if there's no params, return (else we'll get a WHERE IN (), invalid SQL)
         if (isset($params) and is_array($params) and (count($params) == 0)) {
-            return $this;
+            // If $not == true, the condition can be skipped, but if $not == false
+            // we add an always false condition to prevent an unexpected sql result.
+            if($not) {
+                return $this;
+            } else {
+                return $this->where('1 = 0');
+            }
         }
 
         if ($this->_hasDqlQueryPart('where')) {
@@ -1474,10 +1480,11 @@ abstract class Doctrine_Query_Abstract
      */
     public function orWhereIn($expr, $params = array(), $not = false)
     {
+        // -- no, don't return $this as it generates queries with unexpected behavior. _processWhereIn() does throw an adequate exception!
         // if there's no params, return (else we'll get a WHERE IN (), invalid SQL)
-        if (isset($params) and (count($params) == 0)) {
+        /*if (isset($params) and (count($params) == 0)) {
             return $this;
-        }
+        }*/
 
         if ($this->_hasDqlQueryPart('where')) {
             $this->_addDqlQueryPart('where', 'OR', true);
