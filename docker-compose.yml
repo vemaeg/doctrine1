@@ -103,23 +103,30 @@ services:
   php74:
     <<: *services_php54
     build:
-      context: .docker/php74_81
+      context: .docker/php74_82
       args:
         PHP_VERSION: '7.4'
 
   php80:
     <<: *services_php54
     build:
-      context: .docker/php74_81
+      context: .docker/php74_82
       args:
         PHP_VERSION: '8.0'
 
   php81:
     <<: *services_php54
     build:
-      context: .docker/php74_81
+      context: .docker/php74_82
       args:
         PHP_VERSION: '8.1'
+
+  php82:
+    <<: *services_php54
+    build:
+      context: .docker/php74_82
+      args:
+        PHP_VERSION: '8.2'
 
   db:
     image: mysql:5.5.62

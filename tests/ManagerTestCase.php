@@ -32,6 +32,12 @@
  */
 class Doctrine_Manager_TestCase extends Doctrine_UnitTestCase
 {
+    protected $conn1_database;
+    protected $conn2_database;
+
+    protected $conn1;
+    protected $conn2;
+
     public function testGetInstance() {
         $this->assertTrue(Doctrine_Manager::getInstance() instanceOf Doctrine_Manager);
     }

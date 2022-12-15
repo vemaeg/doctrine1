@@ -42,6 +42,11 @@ class Doctrine_RawSql extends Doctrine_Query_Abstract
      * @var array $fields
      */
     private $fields = array();
+    /**
+     * @var false
+     */
+    protected $_preQuery;
+    protected $_pendingJoinConditions;
 
     /**
      * Constructor.
