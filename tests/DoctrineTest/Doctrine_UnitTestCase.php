@@ -53,7 +53,11 @@ class Doctrine_UnitTestCase extends UnitTestCase
     protected $dataDict;
     protected $transaction;
     protected $_name;
-
+    protected $query;
+    protected $profiler;
+    protected $import;
+    protected $sequence;
+    protected $exc;
 
     protected $init = false;
 

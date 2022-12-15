@@ -188,6 +188,7 @@ abstract class Doctrine_Connection extends Doctrine_Configurable implements Coun
      */
     protected $_tableCache;
     protected $_tableCacheTTL;
+    protected $exported;
 
     /**
      * the constructor
