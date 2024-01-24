@@ -22,6 +22,7 @@
     "require": {
         "php": ">=5.3",
         "ext-zlib": "*",
+        "ext-iconv": "*",
         "ext-mbstring": "*",
         "ext-pdo": "*"
     },
