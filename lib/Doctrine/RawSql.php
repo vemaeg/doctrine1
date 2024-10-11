@@ -57,7 +57,7 @@ class Doctrine_RawSql extends Doctrine_Query_Abstract
         $this->useQueryCache(false);
     }
 
-    protected function clear()
+    protected function clear(): void
     {
         $this->_preQueried = false;
         $this->_pendingJoinConditions = array();
@@ -108,9 +108,9 @@ class Doctrine_RawSql extends Doctrine_Query_Abstract
     /**
      * Add select parts to fields.
      *
-     * @param $queryPart sting The name of the querypart
+     * @param $queryPart string The name of the querypart
      */
-    private function _parseSelectFields($queryPart)
+    private function _parseSelectFields(string $queryPart): void
     {
         preg_match_all('/{([^}{]*)}/U', $queryPart, $m);
         $this->fields = $m[1];

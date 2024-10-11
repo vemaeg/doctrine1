@@ -1917,10 +1917,8 @@ abstract class Doctrine_Query_Abstract
 
     /**
      * Resets all the sql parts.
-     *
-     * @return void
      */
-    protected function clear()
+    protected function clear(): void
     {
         $this->_sqlParts = array(
                     'select'    => array(),
