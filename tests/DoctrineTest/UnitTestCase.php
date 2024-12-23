@@ -155,7 +155,7 @@ class UnitTestCase
         self::$_passesAndFails['fails'][$class] = $class;
     }
 
-    public function run(DoctrineTest_Reporter $reporter = null, $filter = null)
+    public function run(?DoctrineTest_Reporter $reporter = null, $filter = null)
     {
         foreach (get_class_methods($this) as $method) {
             if ($this->isTestMethod($method)) {
